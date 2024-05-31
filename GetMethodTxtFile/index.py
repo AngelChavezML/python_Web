@@ -1,6 +1,7 @@
 #Always import tornado
 import tornado.web
 import tornado.ioloop
+import json
 
 class basicRequestHandler(tornado.web.RequestHandler):
     def get(self):
@@ -23,12 +24,28 @@ class queryParamRequestHandler(tornado.web.RequestHandler):
         else:
             self.write(f"{number} is not a valid integer.")
 
+class listTxtRequestHandler(tornado.web.RequestHandler):
+    def get(self):
+        #Open the file that is in the same directory
+        try :
+            fh = open("fruits.txt","r")
+        except FileNotFoundError:
+            self.set_status(404)
+            self.write("File not found")
+            return
+        
+        #Option r is for read
+        fruits = fh.read().splitlines() #this is an array
+        fh.close()
+        self.write(json.dumps(fruits)) #Converts the array to a JSON string
+
 if __name__ == "__main__":
     app = tornado.web.Application([
         (r"/",basicRequestHandler),
         (r"/animal",listRequestHandler),
         (r"/iseven", queryParamRequestHandler),
-        (r"/student/([a-z]+)/([0-9]+)", resoruceParamRequestHandler) #Regular expression to Resource Params, with + is infinite
+        (r"/student/([a-z]+)/([0-9]+)", resoruceParamRequestHandler), #Regular expression to Resource Params, with + is infinite
+        (r"/list",listTxtRequestHandler)
     ])
 
     port = 8888
